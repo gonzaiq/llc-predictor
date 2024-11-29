@@ -3,14 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+from data_preproc import PATIENT_NAME_COL, CELL_TYPE_COL, CELL_NAME_COL, PATIENT_STATE_COL
 
 FILEPATH = "raw_data.csv"
 FIGURES_DIR = "figures"
-
-PATIENT_NAME_COL = "patient_name"
-CELL_TYPE_COL = "cell_type"
-CELL_NAME_COL = "cell_name"
-PATIENT_STATE_COL = "patient_state"
 
 def main():
     
@@ -25,6 +21,12 @@ def main():
     print(f"number of cell names: {len(set(df[CELL_NAME_COL]))}")
     print(f"number of patient states: {len(set(df[PATIENT_STATE_COL]))}")
     print(f"number of rows with nan: {np.sum(df.isna().any())}")
+
+    # verify all patients have the same label
+    for _, group in df.groupby(PATIENT_NAME_COL):
+        # Check if all values in the group for the patient state column are the same
+        if group[PATIENT_STATE_COL].nunique() != 1:
+            raise ValueError(f"Patient state values are not the same in group: {group}")
     
     # histograms
     plt.hist(df[PATIENT_STATE_COL])
@@ -44,8 +46,6 @@ def main():
     plt.grid("on")
     plt.savefig(os.path.join(FIGURES_DIR, "cell_name_hist.png"))
     plt.close()
-
-    return 0
 
     plt.hist(df[CELL_TYPE_COL])
     plt.ylabel("count")
